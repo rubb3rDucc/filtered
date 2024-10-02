@@ -2,7 +2,7 @@ export default function SongList({ list }) {
     return (
         <>
             <ol>
-                <p>{list.length}</p>
+                <p>Number of results : {list.length}</p>
                 {list.map((el, idx) => {
                     return (
                         <li key={idx}>
