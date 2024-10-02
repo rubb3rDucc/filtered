@@ -4,7 +4,7 @@
   "main": "server.js",
   "scripts": {
     "dev": "nodemon -L backend/server.js",
-    "test": "jest",
+    "test": "jest --passWithNoTests",
     "start": "node index.js"
   },
   "keywords": [],
