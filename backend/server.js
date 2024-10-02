@@ -5,8 +5,8 @@ const publicDir = process.argv[2] || __dirname + '/public';
 const helperLibrary = require('./helperFile');
 const appleMusicURL = require('./appleMusicURLS');
 const allowedOrigins = ["http://localhost:3000"];
-const JSONData = require("./tmp/tempLibraryDB.json");
-const { client } = require("./DataBaseConnection.js");
+const JSONData = require("../tmp/tempLibraryDB.json");
+const { client } = require("../database/DataBaseConnection");
 
 const express = require('express');
 const bodyParser = require("body-parser");
@@ -23,7 +23,7 @@ const app = express();
 const cors = require('cors');
 
 // Download the private key from Apple and save it as apple_private_key.p8:
-const private_key = fs.readFileSync("apple_private_key.p8").toString();
+const private_key = fs.readFileSync("./configs/apple_private_key.p8").toString();
 const team_id = process.env.APPLE_TEAM_ID;
 const key_id = process.env.APPLE_KEY_ID;
 
@@ -61,6 +61,9 @@ app.use((req, res, next) => {
 app.get("/", function (req, res) {
 });
 
+/**
+ * 
+ */
 app.post("/receiveUserApiToken", function (req, res) {
   const { userToken } = req.body;
 
@@ -219,6 +222,9 @@ app.get("/getAllPlaylists", async function (req, res) {
 app.post("/createNewPlaylist", function (req, res) {
 });
 
+/**
+ * 
+ */
 app.get("/refreshDatabase", function (req, res) {
   JSONData.forEach(element => {
     client.query(
@@ -363,7 +369,6 @@ app.get("/db/getAllAlbumNames", function (req, res) {
 
 /**
  * get all songs matching album name
- * 
 */
 app.post("/db/getMatchingSongsAlbum", function (req, res) {
   console.log(req.body);
