@@ -1,0 +1,58 @@
+name: dev-database-server
+
+services:
+  server:
+    container_name: filtered-server
+    build:
+      context: .
+      dockerfile: server.Dockerfile
+    ports:
+      - "8080:8080"
+    networks:
+      - local
+    depends_on:
+      db:
+        condition: service_healthy
+    command: ["node", "src/server.js"]
+    env_file:
+      - .env.dev
+ 
+  db:
+    container_name: filtered-db
+    image: postgres:16
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: db.Dockerfile
+    user: postgres
+    environment:
+      - POSTGRES_PASSWORD=${PASSWORD}
+      - POSTGRES_DB=${DB_NAME}
+      - PGDATA=/var/lib/postgresql/data
+      - POSTGRES_HOST_AUTH_METHOD=trust
+    healthcheck:
+      test: [
+        "CMD", "pg_isready",
+        ]
+      interval: 1s
+      timeout: 5s
+      retries: 3
+    ports:
+      - "5432:5432"
+    networks:
+      - local
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./database/createDBs.sql:/docker-entrypoint-initdb.d/createDBs.sql
+
+networks:
+  local:
+    driver: "bridge"
+    name: "local_dbs_network"
+    ipam:
+      config:
+        - subnet: 172.18.0.0/16
+          ip_range: 172.18.0.0/24
+
+volumes:
+  pgdata:
