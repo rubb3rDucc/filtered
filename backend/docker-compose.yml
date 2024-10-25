@@ -16,7 +16,7 @@ services:
     command: ["node", "src/server.js"]
     env_file:
       - .env.dev
- 
+
   db:
     container_name: filtered-db
     image: postgres:16
@@ -31,9 +31,7 @@ services:
       - PGDATA=/var/lib/postgresql/data
       - POSTGRES_HOST_AUTH_METHOD=trust
     healthcheck:
-      test: [
-        "CMD", "pg_isready",
-        ]
+      test: ["CMD", "pg_isready"]
       interval: 1s
       timeout: 5s
       retries: 3
@@ -43,7 +41,7 @@ services:
       - local
     volumes:
       - pgdata:/var/lib/postgresql/data
-      - ./database/createDBs.sql:/docker-entrypoint-initdb.d/createDBs.sql
+      - ./src/database/createDBs.sql:/docker-entrypoint-initdb.d/createDBs.sql
 
 networks:
   local:

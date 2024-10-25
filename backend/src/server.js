@@ -1,29 +1,31 @@
 // Load vars from .env file
 require("dotenv").config();
 
-const publicDir = process.argv[2] || __dirname + '/public';
-const helperLibrary = require('./helperFile');
-const appleMusicURL = require('./appleMusicURLS');
+const publicDir = process.argv[2] || __dirname + "/public";
+const helperLibrary = require("./helperFile");
+const appleMusicURL = require("./appleMusicURLS");
 const allowedOrigins = ["http://localhost:3000"];
 const JSONData = require("../tmp/tempLibraryDB.json");
-const { client } = require("../database/DataBaseConnection");
+const { client } = require("./database/DataBaseConnection");
 
-const express = require('express');
+const express = require("express");
 const bodyParser = require("body-parser");
 
 // file writing
-const fs = require('node:fs');
+const fs = require("node:fs");
 
 // for the Apple Music keygen:
 const jwt = require("jsonwebtoken");
 
-const hostname = process.env.HOSTNAME || 'localhost';
+const hostname = process.env.HOSTNAME || "localhost";
 const port = process.env.PORT;
 const app = express();
-const cors = require('cors');
+const cors = require("cors");
 
 // Download the private key from Apple and save it as apple_private_key.p8:
-const private_key = fs.readFileSync("./configs/apple_private_key.p8").toString();
+const private_key = fs
+  .readFileSync("./configs/apple_private_key.p8")
+  .toString();
 const team_id = process.env.APPLE_TEAM_ID;
 const key_id = process.env.APPLE_KEY_ID;
 
@@ -46,11 +48,14 @@ app.use((req, res, next) => {
 
   if (allowedOrigins.includes(origin)) {
     res.header("Access-Control-Allow-Origin", origin);
-  };
+  }
 
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Methods", "GET, PUT, POST");
-  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept",
+  );
 
   next();
 });
@@ -58,11 +63,10 @@ app.use((req, res, next) => {
 /**
  * kinda dead, does not return anything
  */
-app.get("/", function (req, res) {
-});
+app.get("/", function (req, res) {});
 
 /**
- * 
+ *
  */
 app.post("/receiveUserApiToken", function (req, res) {
   const { userToken } = req.body;
@@ -74,15 +78,13 @@ app.post("/receiveUserApiToken", function (req, res) {
   }
 
   // write user API key to file
-  fs.writeFile('./tmp/userAPIToken.txt', userToken, err => {
+  fs.writeFile("./tmp/userAPIToken.txt", userToken, (err) => {
     if (err) {
       console.error(err);
-    }
-    else {
+    } else {
       console.log("User API Key written to file successfully");
     }
   });
-
 });
 
 /**
@@ -98,135 +100,161 @@ app.get("/generateDeveloperToken", function (req, res) {
   }
 
   // write Developer Token to file
-  fs.writeFile('./tmp/developerAPIToken.txt', token, err => {
+  fs.writeFile("./tmp/developerAPIToken.txt", token, (err) => {
     if (err) {
       console.error(err);
-    }
-    else {
+    } else {
       console.log("Developer API Key written to file successfully");
     }
   });
-
 });
 
 /**
  * get all songs from user library
  */
 app.get("/getAllSongs", async function (req, res) {
-  let filename1 = './tmp/developerAPIToken.txt';
-  let filename2 = './tmp/userAPIToken.txt';
+  let filename1 = "./tmp/developerAPIToken.txt";
+  let filename2 = "./tmp/userAPIToken.txt";
 
-  const developerAPIToken = fs.readFileSync(filename1, 'utf8', function (err, data) {
-    if (err) throw err;
-    // console.log('OK: ' + filename1);
-    // console.log(data)
-  }).toString().split('\n')[0];
+  const developerAPIToken = fs
+    .readFileSync(filename1, "utf8", function (err, data) {
+      if (err) throw err;
+      // console.log('OK: ' + filename1);
+      // console.log(data)
+    })
+    .toString()
+    .split("\n")[0];
 
-  const userAPIToken = fs.readFileSync(filename2, function (err, data) {
-    if (err) throw err;
-    // console.log('OK: ' + filename2);
-    // console.log(data)
-  }).toString().split('\n')[0];
+  const userAPIToken = fs
+    .readFileSync(filename2, function (err, data) {
+      if (err) throw err;
+      // console.log('OK: ' + filename2);
+      // console.log(data)
+    })
+    .toString()
+    .split("\n")[0];
 
   const getData = async (url) => {
     let result = [];
-    let jsonData = await helperLibrary.appleMusicApiURLWithTokens(appleMusicURL.appleMusicLibrarySongsURL, developerAPIToken, userAPIToken);
+    let jsonData = await helperLibrary.appleMusicApiURLWithTokens(
+      appleMusicURL.appleMusicLibrarySongsURL,
+      developerAPIToken,
+      userAPIToken,
+    );
     let nextURL = jsonData.next;
 
-    while (nextURL !== null &&
-      nextURL !== undefined &&
-      nextURL !== '') {
+    while (nextURL !== null && nextURL !== undefined && nextURL !== "") {
       // turn on to see if the offset is incrementing
       console.log("current url:", nextURL);
       // console.log(jsonData.meta.total);
       result.push(...jsonData.data);
       nextURL = jsonData.next;
       // console.log(jsonData.data);
-      let newURL = `https://api.music.apple.com/${nextURL}`
-      jsonData = await helperLibrary.appleMusicApiURLWithTokens(newURL, developerAPIToken, userAPIToken);
+      let newURL = `https://api.music.apple.com/${nextURL}`;
+      jsonData = await helperLibrary.appleMusicApiURLWithTokens(
+        newURL,
+        developerAPIToken,
+        userAPIToken,
+      );
     }
 
     return result;
-  }
+  };
 
   let artistData = await getData(appleMusicURL.appleMusicLibrarySongsURL);
 
   // write the API response to file to see results
-  fs.writeFile('./tmp/tempLibraryDB.json', JSON.stringify(artistData), err => {
-    if (err) {
-      console.error(err);
-    }
-    else {
-      console.log("file written successfully");
-    }
-  });
+  fs.writeFile(
+    "./tmp/tempLibraryDB.json",
+    JSON.stringify(artistData),
+    (err) => {
+      if (err) {
+        console.error(err);
+      } else {
+        console.log("file written successfully");
+      }
+    },
+  );
 });
 
 /**
  * get all playlists from user library
  */
 app.get("/getAllPlaylists", async function (req, res) {
-  let filename1 = './tmp/developerAPIToken.txt';
-  let filename2 = './tmp/userAPIToken.txt';
+  let filename1 = "./tmp/developerAPIToken.txt";
+  let filename2 = "./tmp/userAPIToken.txt";
 
-  const developerAPIToken = fs.readFileSync(filename1, 'utf8', function (err, data) {
-    if (err) throw err;
-    // console.log('OK: ' + filename1);
-    // console.log(data)
-  }).toString().split('\n')[0];
+  const developerAPIToken = fs
+    .readFileSync(filename1, "utf8", function (err, data) {
+      if (err) throw err;
+      // console.log('OK: ' + filename1);
+      // console.log(data)
+    })
+    .toString()
+    .split("\n")[0];
 
-  const userAPIToken = fs.readFileSync(filename2, function (err, data) {
-    if (err) throw err;
-    // console.log('OK: ' + filename2);
-    // console.log(data)
-  }).toString().split('\n')[0];
+  const userAPIToken = fs
+    .readFileSync(filename2, function (err, data) {
+      if (err) throw err;
+      // console.log('OK: ' + filename2);
+      // console.log(data)
+    })
+    .toString()
+    .split("\n")[0];
 
   const getData = async (url) => {
     let result = [];
-    let jsonData = await helperLibrary.appleMusicApiURLWithTokens(appleMusicURL.appleMusicLibraryPlaylistsURL, developerAPIToken, userAPIToken);
+    let jsonData = await helperLibrary.appleMusicApiURLWithTokens(
+      appleMusicURL.appleMusicLibraryPlaylistsURL,
+      developerAPIToken,
+      userAPIToken,
+    );
     let nextURL = jsonData.next;
 
-    while (nextURL !== null &&
-      nextURL !== undefined &&
-      nextURL !== '') {
+    while (nextURL !== null && nextURL !== undefined && nextURL !== "") {
       // turn on to see if the offset is incrementing
       // console.log(jsonData.data);
       console.log("current url:", nextURL);
       // console.log(jsonData.meta.total);
       result.push(...jsonData.data);
       nextURL = jsonData.next;
-      let newURL = `https://api.music.apple.com/${nextURL}`
-      jsonData = await helperLibrary.appleMusicApiURLWithTokens(newURL, developerAPIToken, userAPIToken);
+      let newURL = `https://api.music.apple.com/${nextURL}`;
+      jsonData = await helperLibrary.appleMusicApiURLWithTokens(
+        newURL,
+        developerAPIToken,
+        userAPIToken,
+      );
     }
 
     return result;
-  }
+  };
   // change the URL in each endpoint
   let libraryData = await getData(appleMusicURL.appleMusicLibraryPlaylistsURL);
 
   // write the API response to file to see results
-  fs.writeFile('./tmp/userPlaylists.json', JSON.stringify(libraryData), err => {
-    if (err) {
-      console.error(err);
-    }
-    else {
-      console.log("file written successfully");
-    }
-  });
-
+  fs.writeFile(
+    "./tmp/userPlaylists.json",
+    JSON.stringify(libraryData),
+    (err) => {
+      if (err) {
+        console.error(err);
+      } else {
+        console.log("file written successfully");
+      }
+    },
+  );
 });
 
 /**
- * 
+ *
  */
-app.post("/createNewPlaylist", function (req, res) {
-});
+app.post("/createNewPlaylist", function (req, res) {});
 
 /**
- * 
+ *
  */
 app.get("/refreshDatabase", function (req, res) {
-  JSONData.forEach(element => {
+  JSONData.forEach((element) => {
     client.query(
       `INSERT INTO Songs
             (
@@ -257,11 +285,12 @@ app.get("/refreshDatabase", function (req, res) {
         element.attributes.hasLyrics,
         element.attributes.name,
         element.attributes.artistName,
-        element.attributes.contentRating
+        element.attributes.contentRating,
       ],
       (err, results) => {
         console.log(results);
-      });
+      },
+    );
 
     client.query(
       `INSERT INTO Genres
@@ -274,25 +303,23 @@ app.get("/refreshDatabase", function (req, res) {
             ) 
             RETURNING *
         `,
-      [
-        element.id,
-        element.attributes.genreNames
-      ],
+      [element.id, element.attributes.genreNames],
       (err, results) => {
         console.log(results);
-      });
+      },
+    );
 
     // client.query(
     //   `INSERT INTO Artwork
     //         (
-    //             id, song_id, width, height, 
-    //             url 
+    //             id, song_id, width, height,
+    //             url
     //         )
     //         VALUES
     //         (
     //             DEFAULT, $1, $2,
     //             $3, $4
-    //             ) 
+    //             )
     //         RETURNING *
     //     `,
     //   [
@@ -307,14 +334,14 @@ app.get("/refreshDatabase", function (req, res) {
     // client.query(
     //       `INSERT INTO PlayParams
     //         (
-    //             song_id, is_library, 
-    //             reporting, catalog_id, reporting_id 
+    //             song_id, is_library,
+    //             reporting, catalog_id, reporting_id
     //         )
     //         VALUES
     //         (
     //             $1, $2, $3,
     //             $4, $5
-    //         ) 
+    //         )
     //         RETURNING *
     //     `,
     //   [
@@ -333,43 +360,52 @@ app.get("/refreshDatabase", function (req, res) {
 
 /**
  * get all available genres from db
-*/
+ */
 app.get("/db/getAllGenres", function (req, res) {
-  client.query(`
+  client.query(
+    `
     SELECT DISTINCT genre_name FROM genres;
-    `, (err, results) => {
-    if (err) throw err;
-    res.send(results.rows);
-  });
+    `,
+    (err, results) => {
+      if (err) throw err;
+      res.send(results.rows);
+    },
+  );
 });
 
 /**
  * get all available artists from db
  */
 app.get("/db/getAllArtistNames", function (req, res) {
-  client.query(`
+  client.query(
+    `
     SELECT DISTINCT artist_name FROM songs;
-    `, (err, results) => {
-    if (err) throw err;
-    res.send(results.rows);
-  });
+    `,
+    (err, results) => {
+      if (err) throw err;
+      res.send(results.rows);
+    },
+  );
 });
 
 /**
  * get all available albums from db
  */
 app.get("/db/getAllAlbumNames", function (req, res) {
-  client.query(`
+  client.query(
+    `
     SELECT DISTINCT album_name FROM songs;
-    `, (err, results) => {
-    if (err) throw err;
-    res.send(results.rows);
-  });
+    `,
+    (err, results) => {
+      if (err) throw err;
+      res.send(results.rows);
+    },
+  );
 });
 
 /**
  * get all songs matching album name
-*/
+ */
 app.post("/db/getMatchingSongsAlbum", function (req, res) {
   console.log(req.body);
   client.query(
@@ -402,16 +438,15 @@ app.post("/db/getMatchingSongsAlbum", function (req, res) {
                                     'Imperial Teen', 'Jellyfish', 'The Juliana Hatfield Three', 'Paul Westerberg',
                                     'Seaweed', 'For Squirrels', 'Matthew Sweet')
             AND release_date BETWEEN '1989-01-01' AND '2000-01-01'
-ORDER BY release_date;`
-    ,
+ORDER BY release_date;`,
     // [
     //   req.body.album_name
     // ],
     (err, results) => {
       if (err) throw err;
       res.send(results.rows);
-    }
-  )
+    },
+  );
 });
 
 console.log(`Server listening on port ${port}!`);
