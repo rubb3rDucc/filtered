@@ -1,4 +1,4 @@
-document.addEventListener('musickitconfigured', function () {
+document.addEventListener('musickitconfigured', () => {
   console.log('musickitconfigured event triggered');
 })
 
