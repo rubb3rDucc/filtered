@@ -5,8 +5,8 @@
 ## development workflow/commands
 
 - code some stuff
-- linting: `npm run prettier`
-- more linting: `npm run lint`
+- code formatting: `npm run prettier`
+- linting: `npm run lint`
 - build ts: `npm run build`
 - run tests: `npm run test`
 - watch and build ts files: `npm run watch`
