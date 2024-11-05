@@ -1,12 +1,15 @@
-import globals from "globals";
+import globals from 'globals';
 
 export default [
-  {files: ['**/*.ts']},
-  {  parserOptions: {
-    ecmaVersion: 8,
-  }},
-  {languageOptions: { globals: globals.browser } },
-  {rules: {
-    '@typescript-eslint/no-non-null-assertion': 'off',
-  }},
+  {
+      languageOptions: {
+          ecmaVersion: 2022,
+          sourceType: "module",
+          globals: {
+              ...globals.browser,
+              ...globals.node,
+              myCustomGlobal: "readonly"
+          }
+      }
+  }
 ];
