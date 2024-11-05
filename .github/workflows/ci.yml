@@ -2,6 +2,8 @@ name: CI/CD Pipeline
 
 on:
   push:
+    paths:
+      - 'backend/**'
     branches:
       - main
   pull_request:
@@ -21,11 +23,18 @@ jobs:
         with:
           node-version: '18'
           
-      - name: Run linting
-        run: npm run lint --if-present
-
       - name: Install dependencies
+        working-directory: ./backend
         run: npm install
 
+      - name: Run linting
+        working-directory: ./backend
+        run: npm run lint --if-present
+
+      - name: Build App
+        working-directory: ./backend
+        run: npm run build
+          
       - name: Run tests
+        working-directory: ./backend
         run: npm test

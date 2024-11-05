@@ -2,16 +2,16 @@
 
 ## Start 'ere
 
-- install packages and start the backend server and db:
+## development workflow/commands
 
-<code>
-
-    npm i
-    npm start
-
-</code>
-
-- db build script: `tba`
+- code some stuff
+- code formatting: `npm run prettier`
+- linting: `npm run lint`
+- build ts: `npm run build`
+- run tests: `npm run test`
+- watch and build ts files: `npm run watch`
+- run server for dev purposes: `npm run ts-dev`
+- run server for prod purposes: `npm run start`
 
 ## docker stuff (for me)
 
